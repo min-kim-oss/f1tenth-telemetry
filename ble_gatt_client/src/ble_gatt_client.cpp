@@ -46,7 +46,7 @@ void BleGattClient::getGattValue()
 {
     cout<<"start getting value" << endl;
     while (1) {
-        //char check_word[] = "Value:";
+        char check_word[] = "Value:";
         regex re("\\s(\\w{2})\\s\\w{2}\\s\\w{2}\\s\\w{2}\\s");
         memset(buf,0,sizeof(char)*1024);
         read(fd2[0], buf, sizeof(buf));

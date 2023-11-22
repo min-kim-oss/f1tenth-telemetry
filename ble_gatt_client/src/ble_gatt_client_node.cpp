@@ -1,11 +1,19 @@
 #include "ble_gatt_client/ble_gatt_client.hpp"
 #include <sys/wait.h> //  부모 프로세스가 자식프로세스 판단하는 wait 함수를 사용하기 위해서
 
+void quit(int sig)
+{
+    cout<<"child receive"<<endl;
+    rclcpp::shutdown();
+    exit(0);
+}
+
+
 int main(int argc, char** argv)
 {
     int fd1[2], fd2[2];
     pid_t pid;
-    int status;
+    //int status;
 
     // 부모프로세스에서 자식프로세스로 cmd 를 보낼때 사용할 파이프 fd1을 생성
     if ( pipe(fd1)  == -1){
@@ -27,6 +35,8 @@ int main(int argc, char** argv)
             break;
         /*child process*/
         case 0:  
+
+            signal(SIGINT,quit);
             //자식의 표준 입력을 pipe fd1[0] 와 연결
             if(fd1[0] != 0){
                 dup2(fd1[0],0); 
@@ -48,10 +58,11 @@ int main(int argc, char** argv)
             rclcpp::init(argc, argv);
             auto node = rclcpp::Node::make_shared("ble_gatt_client");
             BleGattClient bleGattClient(node, fd1, fd2);
-
+            signal(SIGINT,quit);
             bleGattClient.getGattValue();
 
-            waitpid(pid, &status, 0);
+            //waitpid(pid, &status, 0);
+            rclcpp::shutdown();
             return 0;
     }
 }
