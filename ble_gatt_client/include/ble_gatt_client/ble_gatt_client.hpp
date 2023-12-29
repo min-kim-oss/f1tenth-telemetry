@@ -4,6 +4,8 @@
 #include <stdio.h> //(표준입출력 라이브러리)의 약어로써, C 언어의 표준 라이브러리 함수의 매크로 정의, 상수, 여러 형의 입출력 함수
 #include <string.h>
 #include <regex>
+#include <fcntl.h>
+#include <sys/types.h>
 
 using namespace std;
 
@@ -23,10 +25,17 @@ class BleGattClient
         /*ble 통신을 통해 보낼 cmd*/
         string arduino_uuid;
         string gatt_attribute_uuid;
-        string connect_cmd;
+        string connection_cmd;
         string menu_cmd;
         string select_attribute_cmd;
         string notify_cmd;
+
+        //key words for checking child process's progress
+        string child_ready_check_cmd;
+        string connection_check_cmd;
+        string menu_check_cmd;
+        string select_attribute_check_cmd;
+        string notify_check_cmd;
 
         smatch match;
         char buf[1024];
@@ -38,7 +47,8 @@ class BleGattClient
     public:
         BleGattClient(shared_ptr<rclcpp::Node> nh, int* fd1, int* fd2);
         ~BleGattClient();
-        void sendBleCommand(string ble_cmd, int* fd1);
+        bool sendBleCommand(string ble_cmd, string check_cmd, int* fd1);
+        bool checkChildProgress(string check_cmd);
         void getGattValue();
 
 };
