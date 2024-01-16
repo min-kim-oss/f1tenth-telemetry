@@ -6,6 +6,9 @@
 #include <regex>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <std_msgs/msg/float64.hpp>
+#include "telemetry_interfaces/msg/telemetry_count.hpp"
+
 
 using namespace std;
 
@@ -42,7 +45,8 @@ class BleGattClient
         char* ptr; 
         char hex_num[2];
 
-        
+        //rclcpp::Publisher<telemetry_interfaces::msg::TelemetryCount>::SharedPtr count_pub_;
+        rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr count_test_pub_;
 
     public:
         BleGattClient(shared_ptr<rclcpp::Node> nh, int* fd1, int* fd2);
@@ -50,5 +54,6 @@ class BleGattClient
         bool sendBleCommand(string ble_cmd, string check_cmd, int* fd1);
         bool checkChildProgress(string check_cmd);
         void getGattValue();
+        void count_publisher(int count);
 
 };

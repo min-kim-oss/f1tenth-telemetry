@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_auto REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rcl_interfaces REQUIRED)
+find_package(telemetry_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -22,7 +23,7 @@ ament_auto_add_library(BleGattClient SHARED
 
 target_compile_features(BleGattClient PRIVATE cxx_std_17)
 ament_target_dependencies(BleGattClient rclcpp rcl_interfaces
-  std_msgs)
+  std_msgs telemetry_interfaces)
 target_include_directories(BleGattClient
   PUBLIC
   #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -32,7 +33,7 @@ target_include_directories(BleGattClient
 )
 
 add_executable(BleGattClient_node src/ble_gatt_client_node.cpp)
-ament_target_dependencies(BleGattClient_node rclcpp)
+ament_target_dependencies(BleGattClient_node rclcpp telemetry_interfaces)
 target_link_libraries(BleGattClient_node BleGattClient)
 
 install(TARGETS

@@ -3,7 +3,6 @@
 
 void quit(int sig)
 {
-    cout<<"child receive"<<endl;
     rclcpp::shutdown();
     exit(0);
 }
@@ -16,20 +15,23 @@ int main(int argc, char** argv)
     int num = 0;
     //int status;
 
-    // 부모프로세스에서 자식프로세스로 cmd 를 보낼때 사용할 파이프 fd1을 생성
+    // create pipe fd1 for sending cmd to child process
     if ( pipe(fd1)  == -1){
         perror("pipe fd1 creating error");
         exit(1);
     }
 
     // 자식프로세스에서 부모프로세스로 cmd 의 결과로 출력된 출력문을 보내줄 파이프 fd2 를 생성
+    // create pipe fd2 for sending cmd result to parent process
     if( pipe(fd2) == -1 ){
         perror("pipe fd2 creating error");
         exit(1);
     }
 
+    signal(SIGINT,quit);
+
     switch(pid = fork()){
-        /*fork 시 에러가 생긴경우*/
+        /*case for fork error*/
         case -1: 
             perror("fork error");
             exit(1);
@@ -38,7 +40,6 @@ int main(int argc, char** argv)
         case 0:  
             num++;
 
-            signal(SIGINT,quit);
             //자식의 표준 입력을 pipe fd1[0] 와 연결
             if(fd1[0] != 0){
                 dup2(fd1[0],0); 
@@ -56,21 +57,12 @@ int main(int argc, char** argv)
 
         /*parent process*/
         default: 
-            
-            /*for non bloking read from child process*/
-            // int flags = fcntl(fd2[0], F_GETFL,0);
-            // flags |= O_NONBLOCK;
-            // fcntl(fd2[0], F_SETFL, flags);
-
-            cout<<num<<endl;
-            cout<<num<<endl;
             rclcpp::init(argc, argv);
             auto node = rclcpp::Node::make_shared("ble_gatt_client");
             BleGattClient bleGattClient(node, fd1, fd2);
             signal(SIGINT,quit);
             bleGattClient.getGattValue();
 
-            //waitpid(pid, &status, 0);
             rclcpp::shutdown();
             return 0;
     }

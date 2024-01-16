@@ -2,13 +2,17 @@
 
 BleGattClient::BleGattClient(std::shared_ptr<rclcpp::Node> nh, int* fd1, int* fd2) : nh_(nh)
 {
-    //초가화 함수
     this->fd1 = fd1;
     this->fd2 = fd2;
 
     this->pre_count = 0;
     this->cur_count = 0;
     this->hex_cycle_count = 0;
+
+    // count_pub_ = nh_->create_publisher<telemetry_interfaces::msg::TelemetryCount>(
+    //     "telemetry/count",1);
+    count_test_pub_ = nh_->create_publisher<std_msgs::msg::Float64>(
+        "telemetry/count",1);    
 
     // ble 통신을 통해 bluetootch ctl 에게 보낼 cmd 초기화
     arduino_uuid = "9C:D3:FB:4F:2A:CE";
@@ -26,7 +30,7 @@ BleGattClient::BleGattClient(std::shared_ptr<rclcpp::Node> nh, int* fd1, int* fd
     notify_check_cmd="Notify started";
 
 
-    //return값 체크 추가
+    
     this-> checkChildProgress(child_ready_check_cmd);
     
     this->sendBleCommand(connection_cmd, connection_check_cmd, fd1);
@@ -43,7 +47,7 @@ BleGattClient::BleGattClient(std::shared_ptr<rclcpp::Node> nh, int* fd1, int* fd
     
     
 }
-
+ 
 BleGattClient::~BleGattClient()
 {
 
@@ -51,8 +55,11 @@ BleGattClient::~BleGattClient()
 
 bool BleGattClient::sendBleCommand(string ble_cmd, string check_cmd, int* fd1)
 {
-    //write return 값 -> system 함수 호출시 에러는 필수로 확인할것
-    write(fd1[1], ble_cmd.c_str(), ble_cmd.length());
+    if ( write(fd1[1], ble_cmd.c_str(), ble_cmd.length())  == -1){
+        perror("parent process write error");
+        exit(1);
+    }
+    
     //코딩할시에는 함수의 원형을 정하고 return 값을 미리 정하여 규율화 할것
     checkChildProgress(check_cmd);
 }
@@ -98,8 +105,21 @@ void BleGattClient::getGattValue()
                 if(cur_count < pre_count) {
                     hex_cycle_count += 1;
                 }
-                cout<<"total count :"<< hex_cycle_count*255 + cur_count << endl;
+                cout<<"total count :"<< hex_num << " : " <<hex_cycle_count<< " : "<<  cur_count << " : " <<hex_cycle_count*255 + cur_count << endl;
+                count_publisher(hex_cycle_count*255 + cur_count);
             }
         }
     }
+}
+
+void BleGattClient::count_publisher(int count_value){
+    // telemetry_interfaces::msg::TelemetryCount count_msg;
+    // count_msg.data = count_value;
+    // count_pub_->publish(count_msg);
+
+
+    std_msgs::msg::Float64 count_msg;
+    count_msg.data = count_value;
+    count_test_pub_->publish(count_msg);
+
 }
